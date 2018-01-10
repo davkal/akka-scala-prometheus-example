@@ -1,6 +1,10 @@
 //#full-example
 package com.lightbend.akka.sample
 
+import kamon.Kamon
+import kamon.prometheus.PrometheusReporter
+import kamon.zipkin.ZipkinReporter
+import scala.util.Random
 import akka.actor.{ Actor, ActorLogging, ActorRef, ActorSystem, Props }
 
 //#greeter-companion
@@ -87,6 +91,18 @@ object AkkaQuickstart extends App {
 
   goodDayGreeter ! WhoToGreet("Play")
   goodDayGreeter ! Greet
+
+  Kamon.addReporter(new PrometheusReporter())
+  Kamon.addReporter(new ZipkinReporter())
+
+  val allGreeters = Vector(howdyGreeter, helloGreeter, goodDayGreeter)
+  def randomGreeter = allGreeters(Random.nextInt(allGreeters.length))
+
+  while(true) {
+    randomGreeter ! Greet
+    Thread.sleep(100)
+  }
+
   //#main-send-messages
 }
 //#main-class
